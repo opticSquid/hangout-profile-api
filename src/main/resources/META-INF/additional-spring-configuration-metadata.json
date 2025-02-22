@@ -1,0 +1,44 @@
+{
+    "properties": [
+        {
+            "name": "hangout.allowed-origins.url",
+            "type": "java.lang.String",
+            "description": "Comma seperated values of the frontend urls that we should allow"
+        },
+        {
+            "name": "minio.url",
+            "type": "java.lang.String",
+            "description": "Address to the server of the Minio/S3 service"
+        },
+        {
+            "name": "minio.accessKey",
+            "type": "java.lang.String",
+            "description": "Access Key to be used to authenticate with Minio/S3 service"
+        },
+        {
+            "name": "minio.secretKey",
+            "type": "java.lang.String",
+            "description": "Secret Key to be used to authenticate with Minio/S3 service"
+        },
+        {
+            "name": "hangout.media.upload-bucket",
+            "type": "java.lang.String",
+            "description": "The Minio/S3 bucket in which we will place the uploaded multimedia files for further processing"
+        },
+        {
+            "name": "hangout.auth-service.url",
+            "type": "java.lang.String",
+            "description": "URL of auth service to authorize access tokens"
+        },
+        {
+            "name": "hangout.kafka.content.topic",
+            "type": "java.lang.String",
+            "description": "A description for 'hangout.kafka.content.topic'"
+        },
+        {
+            "name": "hangout.kafka.content.topic",
+            "type": "java.lang.String",
+            "description": "The kafka topic to produce event in, to indicate new multimedia content is available for processing"
+        }
+    ]
+}
