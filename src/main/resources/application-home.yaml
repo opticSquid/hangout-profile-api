@@ -46,8 +46,8 @@ management:
 
 minio:
   url: http://localhost:9000
-  accessKey: IevColMiX5eBAZUPmfN6
-  secretKey: G8HC3uphX1TlDDYSxtjTrFSVdRe95XJXV2IhqEYg
+  accessKey: tvX2CSzBYVYWjeewgefr
+  secretKey: 5isbCKPsmfKVa85VD1JRsnSWvoHjzcztGOxrEqMT
 
 hangout:
   kafka:

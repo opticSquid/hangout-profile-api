@@ -10,6 +10,8 @@ import com.hangout.core.profile_api.exceptions.UnauthorizedAccessException;
 import com.hangout.core.profile_api.template.Session;
 import com.hangout.core.profile_api.template.UserValidationRequest;
 
+import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -19,6 +21,7 @@ public class AuthorizationService {
     @Value("${hangout.auth-service.url}")
     private String authServiceURL;
 
+    @WithSpan(kind = SpanKind.CLIENT)
     public Session authorizeUser(String authHeader) {
         ResponseEntity<Session> response = restClient
                 .post()

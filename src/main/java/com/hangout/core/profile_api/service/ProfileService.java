@@ -1,5 +1,7 @@
 package com.hangout.core.profile_api.service;
 
+import java.util.Optional;
+
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -20,6 +22,7 @@ import com.hangout.core.profile_api.util.HashService;
 
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -34,24 +37,41 @@ public class ProfileService {
     @Value("${hangout.kafka.content.topic}")
     private String topic;
 
-    @WithSpan(kind = SpanKind.INTERNAL)
+    @WithSpan
+    @Transactional
     public DefaultResponse createProfile(String authorizationToken, String name,
             MultipartFile profilePicture) throws FileUploadException {
         Session session = authorizationService.authorizeUser(authorizationToken);
-        Media media = new Media(hashService.computeInternalFilename(profilePicture), profilePicture.getContentType());
-        media = mediaRepo.save(media);
-        Profile profile = new Profile(session.userId(), name, media);
-        fileUploadService.uploadFile(media.getFilename(), profilePicture);
-        profile = profileRepo.save(profile);
-        media.addPost(profile);
-        mediaRepo.save(media);
+        String filename = hashService.computeInternalFilename(profilePicture);
+        Optional<Media> mediaOpt = mediaRepo.findById(filename);
+        if (mediaOpt.isPresent()) {
+            Media media = mediaOpt.get();
+            Profile profile = new Profile(session.userId(), name, media);
+            profile = profileRepo.save(profile);
+            media.addPost(profile);
+            mediaRepo.save(media);
+        } else {
+            Media media = new Media(filename, profilePicture.getContentType());
+            media = mediaRepo.save(media);
+            Profile profile = new Profile(session.userId(), name, media);
+            fileUploadService.uploadFile(filename, profilePicture);
+            profile = profileRepo.save(profile);
+            media.addPost(profile);
+            mediaRepo.save(media);
+            produceKafkaEvent(profilePicture, session, filename);
+        }
+
+        return new DefaultResponse("profile created");
+    }
+
+    @WithSpan(kind = SpanKind.PRODUCER)
+    private void produceKafkaEvent(MultipartFile profilePicture, Session session, String filename) {
         try {
             kafkaTemplate.send(topic, profilePicture.getContentType(),
-                    new FileUploadEvent(media.getFilename(), session.userId()));
+                    new FileUploadEvent(filename, session.userId()));
         } catch (IllegalStateException e) {
             throw new FileUploadFailed(
                     "Failed to produce kafka event for file: " + profilePicture.getOriginalFilename());
         }
-        return new DefaultResponse("profile created");
     }
 }

@@ -12,6 +12,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.hangout.core.profile_api.service.ProfileService;
 import com.hangout.core.profile_api.template.DefaultResponse;
 
+import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -20,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 public class ProfileController {
     private final ProfileService profileService;
 
+    @WithSpan(kind = SpanKind.SERVER)
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public DefaultResponse createProfile(
             @RequestHeader(name = "Authorization") String authorizationToken,

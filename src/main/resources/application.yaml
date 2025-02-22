@@ -5,6 +5,10 @@ server:
 spring:
   application:
     name: hangout-profile-api
+  servlet:
+    multipart:
+      max-file-size: 1GB
+      max-request-size: 1048MB
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://${DB_URL}/${DB_NAME}
