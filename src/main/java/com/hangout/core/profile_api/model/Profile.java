@@ -3,6 +3,8 @@ package com.hangout.core.profile_api.model;
 import java.math.BigInteger;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -27,6 +29,7 @@ public class Profile {
     private String name;
     @ManyToOne
     @JoinColumn(name = "profile_picture")
+    @JsonManagedReference // Managed side of the relationship
     private Media profilePicture;
 
     public Profile(BigInteger userId, String name, Media profilePicture) {

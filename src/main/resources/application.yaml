@@ -17,10 +17,10 @@ spring:
   jpa:
     properties:
       hibernate:
-        "[format_sql]": true
+        "[format_sql]": false
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: validate
+    show-sql: false
   output:
     ansi:
       enabled: ALWAYS
@@ -32,12 +32,10 @@ spring:
 
 logging:
   level:
-    web: error
-    sql: error
-    "[com.hangout.core]": trace
+    root: info
     # traceID and spanId are predefined MDC keys - we want the logs to include them
   pattern:
-    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+    level: "%5p [${spring.application.name:},%X{trace_id},%X{span_id}]"
 
 management:
   # All traces should be sent to latency analysis tool
@@ -45,13 +43,8 @@ management:
     sampling:
       probability: 1.0
   otlp:
-    # configures the endpoint to send OTLP metrics. (Does not support GRPC)
-    metrics:
-      export:
-        url: ${OTEL_COLLECTOR}/v1/metrics
     tracing:
       compression: gzip
-
   endpoints:
     web:
       exposure:
@@ -65,6 +58,9 @@ management:
             requests: true
 
 otel:
+  exporter:
+    otlp:
+      endpoint: ${OTEL_COLLECTOR}
   instrumentation:
     micrometer:
       enabled: true
