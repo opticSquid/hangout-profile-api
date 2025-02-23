@@ -33,7 +33,7 @@ jobs:
       - name: Update dependency graph
         uses: advanced-security/maven-dependency-submission-action@v4
 
-  build_image:
+  build-image:
     needs: maven-package # makes sure maven-package is successfully completed before building the image
     runs-on: ubuntu-latest
     steps:
