@@ -74,4 +74,10 @@ public class ProfileService {
                     "Failed to produce kafka event for file: " + profilePicture.getOriginalFilename());
         }
     }
+
+    @WithSpan
+    public Optional<Profile> getProfile(String authorizationToken) {
+        Session session = authorizationService.authorizeUser(authorizationToken);
+        return profileRepo.findByUserId(session.userId());
+    }
 }
