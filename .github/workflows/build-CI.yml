@@ -17,16 +17,25 @@ jobs:
           java-version: "21"
           distribution: "corretto"
           cache: maven
+
+      - name: Cache Maven artifacts
+        uses: actions/cache@v3
+        with:
+          path: ~/.maven/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
       - name: Build with Maven
-        # run: mvn -B package --file pom.xml
         run: mvn package -DskipTests=true
 
-      # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
       - name: Update dependency graph
         uses: advanced-security/maven-dependency-submission-action@v4
+
   build_image:
+    needs: maven-package # Make sure maven-package job completes first
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Building the Docker image
-        run: docker build . --file Dockerfile --tag opticsquid/hangout-profile-api:$(date +%s)
+        run: docker build . --file Dockerfile
