@@ -3,8 +3,8 @@ package com.hangout.core.profile_api.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -23,9 +23,11 @@ public class Media {
     @Column(length = 513)
     private String filename;
     private String contentType;
-    @JsonManagedReference
+
     @OneToMany(mappedBy = "profilePicture")
+    @JsonBackReference // Back side of the relationship
     private List<Profile> profiles;
+
     @JsonIgnore
     @Enumerated(value = EnumType.STRING)
     private ProcessStatus processStatus;
