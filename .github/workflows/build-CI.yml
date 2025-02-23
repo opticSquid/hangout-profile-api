@@ -22,9 +22,9 @@ jobs:
         run: mvn package -DskipTests=true
 
       - name: Cache Maven artifacts # THEN cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
-          path: ~/.maven/repository
+          path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
