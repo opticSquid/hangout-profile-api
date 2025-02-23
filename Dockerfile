@@ -12,6 +12,6 @@ FROM amazoncorretto:21-alpine
 
 WORKDIR /app
 
-COPY --from=builder /usr/src/app/target/hangout-profile-api-0.0.2.jar .
+COPY --from=builder /usr/src/app/target/hangout-profile-api-0.0.3.jar .
 
-CMD ["java", "-jar", "hangout-profile-api-0.0.2.jar"]
+CMD ["java", "-jar", "hangout-profile-api-0.0.3.jar"]
