@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.hangout.core.profile_api.exceptions.FileUploadFailed;
+import com.hangout.core.profile_api.exceptions.UnSupportedFileTypeException;
 import com.hangout.core.profile_api.model.Media;
 import com.hangout.core.profile_api.model.Profile;
 import com.hangout.core.profile_api.repo.MediaRepo;
@@ -41,6 +42,10 @@ public class ProfileService {
     @Transactional
     public DefaultResponse createProfile(String authorizationToken, String name,
             MultipartFile profilePicture) throws FileUploadException {
+        if (!profilePicture.getContentType().startsWith("image/")) {
+            throw new UnSupportedFileTypeException(
+                    "The content type " + profilePicture.getContentType() + " is not supported");
+        }
         Session session = authorizationService.authorizeUser(authorizationToken);
         String filename = hashService.computeInternalFilename(profilePicture);
         Optional<Media> mediaOpt = mediaRepo.findById(filename);
@@ -64,6 +69,12 @@ public class ProfileService {
         return new DefaultResponse("profile created");
     }
 
+    @WithSpan
+    public Optional<Profile> getProfile(String authorizationToken) {
+        Session session = authorizationService.authorizeUser(authorizationToken);
+        return profileRepo.findByUserId(session.userId());
+    }
+
     @WithSpan(kind = SpanKind.PRODUCER)
     private void produceKafkaEvent(MultipartFile profilePicture, Session session, String filename) {
         try {
@@ -73,11 +84,5 @@ public class ProfileService {
             throw new FileUploadFailed(
                     "Failed to produce kafka event for file: " + profilePicture.getOriginalFilename());
         }
-    }
-
-    @WithSpan
-    public Optional<Profile> getProfile(String authorizationToken) {
-        Session session = authorizationService.authorizeUser(authorizationToken);
-        return profileRepo.findByUserId(session.userId());
     }
 }
