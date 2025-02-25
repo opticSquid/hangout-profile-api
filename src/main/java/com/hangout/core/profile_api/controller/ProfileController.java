@@ -1,5 +1,6 @@
 package com.hangout.core.profile_api.controller;
 
+import java.math.BigInteger;
 import java.util.Optional;
 
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
@@ -7,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,10 +39,21 @@ public class ProfileController {
         return profileService.createProfile(authorizationToken, name, profilePicture);
     }
 
-    @WithSpan(kind = SpanKind.SERVER)
+    @WithSpan(kind = SpanKind.SERVER, value = "with authorization-token")
     @GetMapping
     public ResponseEntity<Profile> getProfile(@RequestHeader(name = "Authorization") String authorizationToken) {
         Optional<Profile> profileOpt = profileService.getProfile(authorizationToken);
+        if (profileOpt.isPresent()) {
+            return new ResponseEntity<>(profileOpt.get(), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @WithSpan(kind = SpanKind.SERVER, value = "with user id")
+    @GetMapping("/{userId}")
+    public ResponseEntity<Profile> getProfile(@PathVariable BigInteger userId) {
+        Optional<Profile> profileOpt = profileService.getProfile(userId);
         if (profileOpt.isPresent()) {
             return new ResponseEntity<>(profileOpt.get(), HttpStatus.OK);
         } else {
