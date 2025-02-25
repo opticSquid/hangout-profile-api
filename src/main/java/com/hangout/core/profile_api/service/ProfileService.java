@@ -1,5 +1,6 @@
 package com.hangout.core.profile_api.service;
 
+import java.math.BigInteger;
 import java.util.Optional;
 
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
@@ -73,6 +74,11 @@ public class ProfileService {
     public Optional<Profile> getProfile(String authorizationToken) {
         Session session = authorizationService.authorizeUser(authorizationToken);
         return profileRepo.findByUserId(session.userId());
+    }
+
+    @WithSpan
+    public Optional<Profile> getProfile(BigInteger userId) {
+        return profileRepo.findByUserId(userId);
     }
 
     @WithSpan(kind = SpanKind.PRODUCER)
