@@ -10,8 +10,6 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
-  kafka:
-    bootstrap-servers: localhost:9092
 
 logging:
   level:
@@ -23,10 +21,10 @@ logging:
 otel:
   exporter:
     otlp:
-      endpoint: http://localhost:4318
+      endpoint: http://localhost:4317
   instrumentation:
     micrometer:
-      enabled: true
+      enabled: false
 
 minio:
   url: http://localhost:9000
@@ -34,12 +32,9 @@ minio:
   secretKey: 5isbCKPsmfKVa85VD1JRsnSWvoHjzcztGOxrEqMT
 
 hangout:
-  kafka:
-    content:
-      topic: content
   allowed-origins:
-    url: http://localhost:3000,
+    url: http://localhost:5137/,
   media:
-    upload-bucket: hangout-upload-path
+    upload-bucket: profile-photos
   auth-service:
     url: http://localhost:5011
