@@ -1,6 +1,7 @@
 package com.hangout.core.profile_api.controller;
 
 import java.math.BigInteger;
+import java.time.ZonedDateTime;
 import java.util.Optional;
 
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.hangout.core.profile_api.model.Gender;
 import com.hangout.core.profile_api.model.Profile;
 import com.hangout.core.profile_api.service.ProfileService;
 import com.hangout.core.profile_api.template.DefaultResponse;
@@ -35,8 +37,10 @@ public class ProfileController {
     public DefaultResponse createProfile(
             @RequestHeader(name = "Authorization") String authorizationToken,
             @RequestPart(name = "name") String name,
+            @RequestPart(name = "gender") Gender gender,
+            @RequestPart(name = "dob") ZonedDateTime dob,
             @RequestPart(name = "profile-picture") MultipartFile profilePicture) throws FileUploadException {
-        return profileService.createProfile(authorizationToken, name, profilePicture);
+        return profileService.createProfile(authorizationToken, name, gender, dob, profilePicture);
     }
 
     @WithSpan(kind = SpanKind.SERVER, value = "with authorization-token")

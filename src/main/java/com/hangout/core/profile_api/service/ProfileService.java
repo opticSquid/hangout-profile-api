@@ -1,6 +1,7 @@
 package com.hangout.core.profile_api.service;
 
 import java.math.BigInteger;
+import java.time.ZonedDateTime;
 import java.util.Optional;
 
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.hangout.core.profile_api.exceptions.UnSupportedFileTypeException;
+import com.hangout.core.profile_api.model.Gender;
 import com.hangout.core.profile_api.model.Media;
 import com.hangout.core.profile_api.model.Profile;
 import com.hangout.core.profile_api.repo.MediaRepo;
@@ -33,7 +35,7 @@ public class ProfileService {
 
     @WithSpan
     @Transactional
-    public DefaultResponse createProfile(String authorizationToken, String name,
+    public DefaultResponse createProfile(String authorizationToken, String name, Gender gender, ZonedDateTime dob,
             MultipartFile profilePicture) throws FileUploadException {
         if (!profilePicture.getContentType().startsWith("image/")) {
             throw new UnSupportedFileTypeException(
@@ -42,22 +44,18 @@ public class ProfileService {
         Session session = authorizationService.authorizeUser(authorizationToken);
         String filename = hashService.computeInternalFilename(profilePicture);
         Optional<Media> mediaOpt = mediaRepo.findById(filename);
+        Media media;
         if (mediaOpt.isPresent()) {
-            Media media = mediaOpt.get();
-            Profile profile = new Profile(session.userId(), name, media);
-            profile = profileRepo.save(profile);
-            media.addPost(profile);
-            mediaRepo.save(media);
+            media = mediaOpt.get();
         } else {
-            Media media = new Media(filename, profilePicture.getContentType());
-            media = mediaRepo.save(media);
-            Profile profile = new Profile(session.userId(), name, media);
-            fileUploadService.uploadFile(filename, profilePicture);
-            profile = profileRepo.save(profile);
-            media.addPost(profile);
-            mediaRepo.save(media);
+            Media m = new Media(filename, profilePicture.getContentType());
+            media = mediaRepo.save(m);
         }
-
+        Profile profile = new Profile(session.userId(), name, gender, dob, media);
+        fileUploadService.uploadFile(filename, profilePicture);
+        profile = profileRepo.save(profile);
+        media.addPost(profile);
+        mediaRepo.save(media);
         return new DefaultResponse("profile created");
     }
 
