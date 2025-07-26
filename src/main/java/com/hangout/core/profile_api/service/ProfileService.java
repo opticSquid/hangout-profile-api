@@ -5,9 +5,11 @@ import java.time.ZonedDateTime;
 import java.util.Optional;
 
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.hangout.core.profile_api.exceptions.DuplicateProfileException;
 import com.hangout.core.profile_api.exceptions.UnSupportedFileTypeException;
 import com.hangout.core.profile_api.model.Gender;
 import com.hangout.core.profile_api.model.Media;
@@ -49,11 +51,15 @@ public class ProfileService {
             media = mediaOpt.get();
         } else {
             Media m = new Media(filename, profilePicture.getContentType());
+            fileUploadService.uploadFile(filename, profilePicture);
             media = mediaRepo.save(m);
         }
         Profile profile = new Profile(session.userId(), name, gender, dob, media);
-        fileUploadService.uploadFile(filename, profilePicture);
-        profile = profileRepo.save(profile);
+        try {
+            profile = profileRepo.save(profile);
+        } catch (DataIntegrityViolationException exception) {
+            throw new DuplicateProfileException("profile already exists for the user");
+        }
         media.addPost(profile);
         mediaRepo.save(media);
         return new DefaultResponse("profile created");

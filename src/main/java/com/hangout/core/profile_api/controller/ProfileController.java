@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.hangout.core.profile_api.exceptions.UnSupportedDateFormat;
+import com.hangout.core.profile_api.exceptions.UnSupportedDateFormatException;
 import com.hangout.core.profile_api.model.Gender;
 import com.hangout.core.profile_api.model.Profile;
 import com.hangout.core.profile_api.service.ProfileService;
@@ -54,7 +54,7 @@ public class ProfileController {
             ZonedDateTime dateOfBirth = ZonedDateTime.parse(dob);
             return profileService.createProfile(authorizationToken, name, gender, dateOfBirth, profilePicture);
         } catch (DateTimeParseException ex) {
-            throw new UnSupportedDateFormat(
+            throw new UnSupportedDateFormatException(
                     "Unsupported date format provided for Date of Birth field. Provide this lind of date format: 2007-12-03T10:15:30+01:00");
         }
     }

@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.hangout.core.profile_api.exceptions.FileUploadFailed;
+import com.hangout.core.profile_api.exceptions.FileUploadFailedException;
 
 import io.minio.MinioClient;
 import io.minio.ObjectWriteResponse;
@@ -58,7 +58,7 @@ public class FileUploadService {
             log.error("File {} failed to upload, exception: {}, reason: {}", multipartFile.getOriginalFilename(),
                     ex,
                     ex.getCause());
-            throw new FileUploadFailed(multipartFile.getOriginalFilename() + " failed to upload");
+            throw new FileUploadFailedException(multipartFile.getOriginalFilename() + " failed to upload");
         }
     }
 }

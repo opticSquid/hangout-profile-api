@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.hangout.core.profile_api.exceptions.ConnectionFailed;
+import com.hangout.core.profile_api.exceptions.ConnectionFailedException;
 
 import io.minio.BucketExistsArgs;
 import io.minio.MakeBucketArgs;
@@ -51,10 +51,10 @@ public class MinioClientConfig {
         } catch (MinioException ex) {
             log.error("Error occured in connecting with Minio/S3, exception: {}", ex);
             log.debug("Http trace:{}", ex.httpTrace());
-            throw new ConnectionFailed("failed to establish connection with Minio/s3");
+            throw new ConnectionFailedException("failed to establish connection with Minio/s3");
         } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException ex) {
             log.error("Minio connection failed for wrong connection parameters", ex);
-            throw new ConnectionFailed("Failed to connect with Minio/s3 due to wrong connection parameters");
+            throw new ConnectionFailedException("Failed to connect with Minio/s3 due to wrong connection parameters");
         }
     }
 }
