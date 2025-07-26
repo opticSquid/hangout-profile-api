@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/profiledb
+    url: jdbc:postgresql://localhost:5432/profiles
     username: postgres
     password: PkNLm@#2357
   jpa:
@@ -37,4 +37,4 @@ hangout:
   media:
     upload-bucket: profile-photos
   auth-service:
-    url: http://localhost:5011
+    url: http://localhost:80
