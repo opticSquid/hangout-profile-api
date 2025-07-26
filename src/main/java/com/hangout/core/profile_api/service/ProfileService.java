@@ -1,28 +1,25 @@
 package com.hangout.core.profile_api.service;
 
 import java.math.BigInteger;
+import java.time.ZonedDateTime;
 import java.util.Optional;
 
-import org.apache.tomcat.util.http.fileupload.FileUploadException;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.hangout.core.profile_api.exceptions.FileUploadFailed;
 import com.hangout.core.profile_api.exceptions.UnSupportedFileTypeException;
+import com.hangout.core.profile_api.model.Gender;
 import com.hangout.core.profile_api.model.Media;
 import com.hangout.core.profile_api.model.Profile;
 import com.hangout.core.profile_api.repo.MediaRepo;
 import com.hangout.core.profile_api.repo.ProfileRepo;
 import com.hangout.core.profile_api.template.DefaultResponse;
-import com.hangout.core.profile_api.template.FileUploadEvent;
+import com.hangout.core.profile_api.template.PublicProfileProjection;
 import com.hangout.core.profile_api.template.Session;
 import com.hangout.core.profile_api.util.AuthorizationService;
 import com.hangout.core.profile_api.util.FileUploadService;
 import com.hangout.core.profile_api.util.HashService;
 
-import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -35,14 +32,11 @@ public class ProfileService {
     private final HashService hashService;
     private final ProfileRepo profileRepo;
     private final MediaRepo mediaRepo;
-    private final KafkaTemplate<String, Object> kafkaTemplate;
-    @Value("${hangout.kafka.content.topic}")
-    private String topic;
 
-    @WithSpan
+    @WithSpan(value = "create profile service")
     @Transactional
-    public DefaultResponse createProfile(String authorizationToken, String name,
-            MultipartFile profilePicture) throws FileUploadException {
+    public DefaultResponse createProfile(String authorizationToken, String name, Gender gender, ZonedDateTime dob,
+            MultipartFile profilePicture) {
         if (!profilePicture.getContentType().startsWith("image/")) {
             throw new UnSupportedFileTypeException(
                     "The content type " + profilePicture.getContentType() + " is not supported");
@@ -50,45 +44,29 @@ public class ProfileService {
         Session session = authorizationService.authorizeUser(authorizationToken);
         String filename = hashService.computeInternalFilename(profilePicture);
         Optional<Media> mediaOpt = mediaRepo.findById(filename);
+        Media media;
         if (mediaOpt.isPresent()) {
-            Media media = mediaOpt.get();
-            Profile profile = new Profile(session.userId(), name, media);
-            profile = profileRepo.save(profile);
-            media.addPost(profile);
-            mediaRepo.save(media);
+            media = mediaOpt.get();
         } else {
-            Media media = new Media(filename, profilePicture.getContentType());
-            media = mediaRepo.save(media);
-            Profile profile = new Profile(session.userId(), name, media);
+            Media m = new Media(filename, profilePicture.getContentType());
             fileUploadService.uploadFile(filename, profilePicture);
-            profile = profileRepo.save(profile);
-            media.addPost(profile);
-            mediaRepo.save(media);
-            produceKafkaEvent(profilePicture, session, filename);
+            media = mediaRepo.save(m);
         }
-
+        Profile profile = new Profile(session.userId(), name, gender, dob, media);
+        profile = profileRepo.save(profile);
+        media.addPost(profile);
+        mediaRepo.save(media);
         return new DefaultResponse("profile created");
     }
 
-    @WithSpan
-    public Optional<Profile> getProfile(String authorizationToken) {
+    @WithSpan(value = "get own profile service")
+    public Optional<Profile> getOwnProfile(String authorizationToken) {
         Session session = authorizationService.authorizeUser(authorizationToken);
         return profileRepo.findByUserId(session.userId());
     }
 
-    @WithSpan
-    public Optional<Profile> getProfile(BigInteger userId) {
-        return profileRepo.findByUserId(userId);
-    }
-
-    @WithSpan(kind = SpanKind.PRODUCER)
-    private void produceKafkaEvent(MultipartFile profilePicture, Session session, String filename) {
-        try {
-            kafkaTemplate.send(topic, profilePicture.getContentType(),
-                    new FileUploadEvent(filename, session.userId()));
-        } catch (IllegalStateException e) {
-            throw new FileUploadFailed(
-                    "Failed to produce kafka event for file: " + profilePicture.getOriginalFilename());
-        }
+    @WithSpan(value = "get public profile service")
+    public Optional<PublicProfileProjection> getPublicProile(BigInteger userId) {
+        return profileRepo.findPublicProfileDetails(userId);
     }
 }

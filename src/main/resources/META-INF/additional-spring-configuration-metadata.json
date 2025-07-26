@@ -23,22 +23,12 @@
         {
             "name": "hangout.media.upload-bucket",
             "type": "java.lang.String",
-            "description": "The Minio/S3 bucket in which we will place the uploaded multimedia files for further processing"
+            "description": "The Minio/S3 bucket in which we will place the uploaded profile pictures"
         },
         {
             "name": "hangout.auth-service.url",
             "type": "java.lang.String",
             "description": "URL of auth service to authorize access tokens"
-        },
-        {
-            "name": "hangout.kafka.content.topic",
-            "type": "java.lang.String",
-            "description": "A description for 'hangout.kafka.content.topic'"
-        },
-        {
-            "name": "hangout.kafka.content.topic",
-            "type": "java.lang.String",
-            "description": "The kafka topic to produce event in, to indicate new multimedia content is available for processing"
         }
     ]
 }
