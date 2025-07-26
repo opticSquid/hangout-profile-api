@@ -5,9 +5,10 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.hangout.core.profile_api.exceptions.FileUploadFailedException;
 
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.extern.slf4j.Slf4j;
@@ -23,10 +24,9 @@ public class HashService {
      * 
      * @param file
      * @return new file name for internal use
-     * @throws FileUploadException
      */
     @WithSpan
-    public String computeInternalFilename(MultipartFile file) throws FileUploadException {
+    public String computeInternalFilename(MultipartFile file) {
         byte[] data;
         try {
             data = file.getBytes();
@@ -41,7 +41,7 @@ public class HashService {
                 throw new IllegalArgumentException(ex);
             }
         } catch (IOException e) {
-            throw new FileUploadException(
+            throw new FileUploadFailedException(
                     "the file contents can not be processed may be the file is corrupted. Please check and reupload");
         }
     }

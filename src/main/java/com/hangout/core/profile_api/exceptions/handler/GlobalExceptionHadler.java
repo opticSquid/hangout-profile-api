@@ -1,5 +1,6 @@
 package com.hangout.core.profile_api.exceptions.handler;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -7,7 +8,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import com.hangout.core.profile_api.exceptions.ConnectionFailedException;
-import com.hangout.core.profile_api.exceptions.DuplicateProfileException;
 import com.hangout.core.profile_api.exceptions.FileUploadFailedException;
 import com.hangout.core.profile_api.exceptions.UnSupportedDateFormatException;
 import com.hangout.core.profile_api.exceptions.UnSupportedFileTypeException;
@@ -51,9 +51,10 @@ public class GlobalExceptionHadler extends ResponseEntityExceptionHandler {
         return problem;
     }
 
-    @ExceptionHandler(DuplicateProfileException.class)
-    public ProblemDetail exceptionHandler(DuplicateProfileException ex) {
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ProblemDetail exceptionHandler(DataIntegrityViolationException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
+                "A profile already exists for the given user");
         problem.setTitle("Profile already exists");
         return problem;
     }

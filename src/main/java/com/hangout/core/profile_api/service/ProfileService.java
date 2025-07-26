@@ -4,12 +4,9 @@ import java.math.BigInteger;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 
-import org.apache.tomcat.util.http.fileupload.FileUploadException;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.hangout.core.profile_api.exceptions.DuplicateProfileException;
 import com.hangout.core.profile_api.exceptions.UnSupportedFileTypeException;
 import com.hangout.core.profile_api.model.Gender;
 import com.hangout.core.profile_api.model.Media;
@@ -38,7 +35,7 @@ public class ProfileService {
     @WithSpan
     @Transactional
     public DefaultResponse createProfile(String authorizationToken, String name, Gender gender, ZonedDateTime dob,
-            MultipartFile profilePicture) throws FileUploadException {
+            MultipartFile profilePicture) {
         if (!profilePicture.getContentType().startsWith("image/")) {
             throw new UnSupportedFileTypeException(
                     "The content type " + profilePicture.getContentType() + " is not supported");
@@ -55,11 +52,7 @@ public class ProfileService {
             media = mediaRepo.save(m);
         }
         Profile profile = new Profile(session.userId(), name, gender, dob, media);
-        try {
-            profile = profileRepo.save(profile);
-        } catch (DataIntegrityViolationException exception) {
-            throw new DuplicateProfileException("profile already exists for the user");
-        }
+        profile = profileRepo.save(profile);
         media.addPost(profile);
         mediaRepo.save(media);
         return new DefaultResponse("profile created");

@@ -50,13 +50,14 @@ public class ProfileController {
         } else {
             gender = Gender.OTHER;
         }
+        ZonedDateTime dateOfBirth;
         try {
-            ZonedDateTime dateOfBirth = ZonedDateTime.parse(dob);
-            return profileService.createProfile(authorizationToken, name, gender, dateOfBirth, profilePicture);
+            dateOfBirth = ZonedDateTime.parse(dob);
         } catch (DateTimeParseException ex) {
             throw new UnSupportedDateFormatException(
                     "Unsupported date format provided for Date of Birth field. Provide this lind of date format: 2007-12-03T10:15:30+01:00");
         }
+        return profileService.createProfile(authorizationToken, name, gender, dateOfBirth, profilePicture);
     }
 
     @WithSpan(kind = SpanKind.SERVER, value = "get own profile")
