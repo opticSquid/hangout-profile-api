@@ -26,7 +26,7 @@ public class AuthorizationService {
     @Value("${hangout.auth-service.url}")
     private String authServiceURL;
 
-    @WithSpan(kind = SpanKind.CLIENT)
+    @WithSpan(kind = SpanKind.CLIENT, value = "authorizing wiht auth-api")
     public Session authorizeUser(String authHeader) {
         try {
             ResponseEntity<Session> response = restClient

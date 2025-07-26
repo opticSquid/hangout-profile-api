@@ -39,7 +39,7 @@ public class FileUploadService {
      * @param multipartFile file object to be stored
      * @return returns true if file upload is successful
      */
-    @WithSpan(kind = SpanKind.CLIENT)
+    @WithSpan(kind = SpanKind.CLIENT, value = "uploading file to object storage")
     public void uploadFile(String internalName, MultipartFile multipartFile) {
         try {
             ObjectWriteResponse writeResponse = minioClient

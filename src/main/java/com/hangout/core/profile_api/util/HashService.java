@@ -25,7 +25,7 @@ public class HashService {
      * @param file
      * @return new file name for internal use
      */
-    @WithSpan
+    @WithSpan(value = "computing internal file name")
     public String computeInternalFilename(MultipartFile file) {
         byte[] data;
         try {

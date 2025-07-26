@@ -5,7 +5,6 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.Optional;
 
-import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +22,7 @@ import com.hangout.core.profile_api.model.Gender;
 import com.hangout.core.profile_api.model.Profile;
 import com.hangout.core.profile_api.service.ProfileService;
 import com.hangout.core.profile_api.template.DefaultResponse;
+import com.hangout.core.profile_api.template.PublicProfileProjection;
 
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
@@ -41,11 +41,11 @@ public class ProfileController {
             @RequestPart(name = "name") String name,
             @RequestPart(name = "gender") String g,
             @RequestPart(name = "dob") String dob,
-            @RequestPart(name = "profile-picture") MultipartFile profilePicture) throws FileUploadException {
+            @RequestPart(name = "profile-picture") MultipartFile profilePicture) {
         Gender gender;
-        if (g == Gender.FEMALE.label) {
+        if (g.equals(Gender.FEMALE.label)) {
             gender = Gender.FEMALE;
-        } else if (g == Gender.MALE.label) {
+        } else if (g.equals(Gender.MALE.label)) {
             gender = Gender.MALE;
         } else {
             gender = Gender.OTHER;
@@ -63,7 +63,7 @@ public class ProfileController {
     @WithSpan(kind = SpanKind.SERVER, value = "get own profile")
     @GetMapping
     public ResponseEntity<Profile> getProfile(@RequestHeader(name = "Authorization") String authorizationToken) {
-        Optional<Profile> profileOpt = profileService.getProfile(authorizationToken);
+        Optional<Profile> profileOpt = profileService.getOwnProfile(authorizationToken);
         if (profileOpt.isPresent()) {
             return new ResponseEntity<>(profileOpt.get(), HttpStatus.OK);
         } else {
@@ -73,8 +73,8 @@ public class ProfileController {
 
     @WithSpan(kind = SpanKind.SERVER, value = "get other's profiles")
     @GetMapping("/{userId}")
-    public ResponseEntity<Profile> getProfile(@PathVariable BigInteger userId) {
-        Optional<Profile> profileOpt = profileService.getProfile(userId);
+    public ResponseEntity<PublicProfileProjection> getProfile(@PathVariable BigInteger userId) {
+        Optional<PublicProfileProjection> profileOpt = profileService.getPublicProile(userId);
         if (profileOpt.isPresent()) {
             return new ResponseEntity<>(profileOpt.get(), HttpStatus.OK);
         } else {

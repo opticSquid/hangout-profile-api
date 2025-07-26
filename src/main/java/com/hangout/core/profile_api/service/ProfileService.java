@@ -14,6 +14,7 @@ import com.hangout.core.profile_api.model.Profile;
 import com.hangout.core.profile_api.repo.MediaRepo;
 import com.hangout.core.profile_api.repo.ProfileRepo;
 import com.hangout.core.profile_api.template.DefaultResponse;
+import com.hangout.core.profile_api.template.PublicProfileProjection;
 import com.hangout.core.profile_api.template.Session;
 import com.hangout.core.profile_api.util.AuthorizationService;
 import com.hangout.core.profile_api.util.FileUploadService;
@@ -32,7 +33,7 @@ public class ProfileService {
     private final ProfileRepo profileRepo;
     private final MediaRepo mediaRepo;
 
-    @WithSpan
+    @WithSpan(value = "create profile service")
     @Transactional
     public DefaultResponse createProfile(String authorizationToken, String name, Gender gender, ZonedDateTime dob,
             MultipartFile profilePicture) {
@@ -58,14 +59,14 @@ public class ProfileService {
         return new DefaultResponse("profile created");
     }
 
-    @WithSpan
-    public Optional<Profile> getProfile(String authorizationToken) {
+    @WithSpan(value = "get own profile service")
+    public Optional<Profile> getOwnProfile(String authorizationToken) {
         Session session = authorizationService.authorizeUser(authorizationToken);
         return profileRepo.findByUserId(session.userId());
     }
 
-    @WithSpan
-    public Optional<Profile> getProfile(BigInteger userId) {
-        return profileRepo.findByUserId(userId);
+    @WithSpan(value = "get public profile service")
+    public Optional<PublicProfileProjection> getPublicProile(BigInteger userId) {
+        return profileRepo.findPublicProfileDetails(userId);
     }
 }
