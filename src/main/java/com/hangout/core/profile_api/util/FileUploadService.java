@@ -1,8 +1,7 @@
 package com.hangout.core.profile_api.util;
 
 import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
+import java.io.InputStream;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -10,54 +9,57 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.hangout.core.profile_api.exceptions.FileUploadFailedException;
 
-import io.minio.MinioClient;
-import io.minio.ObjectWriteResponse;
-import io.minio.PutObjectArgs;
-import io.minio.errors.ErrorResponseException;
-import io.minio.errors.InsufficientDataException;
-import io.minio.errors.InternalException;
-import io.minio.errors.InvalidResponseException;
-import io.minio.errors.ServerException;
-import io.minio.errors.XmlParserException;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class FileUploadService {
-    private final MinioClient minioClient;
+
+    private final S3Client s3Client;
+
     @Value("${hangout.media.upload-bucket}")
     private String uploadBucket;
 
     /**
-     * Uploads the given file with the given file name to Minio/s3 storage bucket
-     * 
-     * @param internalName  file name to be assigned to the file while storing
-     * @param multipartFile file object to be stored
-     * @return returns true if file upload is successful
+     * Uploads a file to S3 using AWS SDK v2.
+     *
+     * @param internalName  Name of the object in S3.
+     * @param multipartFile File content to upload.
      */
-    @WithSpan(kind = SpanKind.CLIENT, value = "uploading file to object storage")
+    @WithSpan(kind = SpanKind.CLIENT, value = "uploading file to S3")
     public void uploadFile(String internalName, MultipartFile multipartFile) {
-        try {
-            ObjectWriteResponse writeResponse = minioClient
-                    .putObject(PutObjectArgs
-                            .builder()
-                            .bucket(uploadBucket)
-                            .object(internalName)
-                            .stream(multipartFile.getInputStream(), multipartFile.getSize(), -1)
-                            .contentType(multipartFile.getContentType()).build());
-            log.info("File {} uploaded to bucket:{}, with eTag: {}", internalName, writeResponse.bucket(),
-                    writeResponse.etag());
-        } catch (InvalidKeyException | ErrorResponseException | InsufficientDataException | InternalException
-                | InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException
-                | IllegalArgumentException
-                | IOException ex) {
-            log.error("File {} failed to upload, exception: {}, reason: {}", multipartFile.getOriginalFilename(),
-                    ex,
-                    ex.getCause());
+        log.info("Starting upload of file {} to S3 bucket {}", internalName, uploadBucket);
+        try (InputStream inputStream = multipartFile.getInputStream()) {
+
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(uploadBucket)
+                    .key(internalName)
+                    .contentType(multipartFile.getContentType())
+                    .build();
+
+            PutObjectResponse response = s3Client.putObject(putObjectRequest,
+                    RequestBody.fromInputStream(inputStream, multipartFile.getSize()));
+
+            log.info("File '{}' uploaded successfully to bucket '{}' with ETag '{}'",
+                    internalName, uploadBucket, response.eTag());
+
+        } catch (S3Exception e) {
+            log.error("S3Exception uploading file '{}': {}", internalName, e.awsErrorDetails().errorMessage(), e);
+            throw new FileUploadFailedException("S3 upload failed for file: " + internalName);
+        } catch (IOException e) {
+            log.error("IO error uploading file '{}': {}", internalName, e.getMessage(), e);
+            throw new FileUploadFailedException("IO error during upload: " + multipartFile.getOriginalFilename());
+        } catch (Exception e) {
+            log.error("Unexpected error uploading file '{}': {}", internalName, e.getMessage(), e);
             throw new FileUploadFailedException(multipartFile.getOriginalFilename() + " failed to upload");
         }
     }

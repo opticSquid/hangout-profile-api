@@ -26,10 +26,8 @@ otel:
     micrometer:
       enabled: false
 
-minio:
-  url: http://localhost:9000
-  accessKey: tvX2CSzBYVYWjeewgefr
-  secretKey: 5isbCKPsmfKVa85VD1JRsnSWvoHjzcztGOxrEqMT
+aws:
+  region: ap-south-1
 
 hangout:
   allowed-origins:

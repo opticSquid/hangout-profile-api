@@ -50,17 +50,18 @@ otel:
     otlp:
       protocol: grpc
       endpoint: ${OTEL_COLLECTOR}
+  instrumentation:
+    micrometer:
+      enabled: false
 
 springdoc:
   api-docs:
     path: /api-docs
   swagger-ui:
-    path: /swagger-ui    
+    path: /swagger-ui
 
-minio:
-  url: ${MINIO_SERVER}
-  accessKey: ${MINIO_ACCESS_KEY}
-  secretKey: ${MINIO_SECRET_KEY}  
+aws:
+  region: ${AWS_REGION}
 
 logging:
   level:
