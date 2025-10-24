@@ -52,7 +52,7 @@ otel:
       endpoint: ${OTEL_COLLECTOR}
   instrumentation:
     micrometer:
-      enabled: false
+      enabled: true
 
 springdoc:
   api-docs:
